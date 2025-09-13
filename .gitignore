@@ -1,0 +1,35 @@
+# Arquivos de compilação
+*.o
+*.obj
+*.so
+*.a
+*.dll
+*.exe
+*.out
+*.log
+
+# Diretórios de build
+/build/
+/bin/
+/Debug/
+/Release/
+
+# IDEs
+/.idea/
+/.vscode/
+/*.code-workspace
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.swp
+*.bak
+
+# Backup de editores
+*~
