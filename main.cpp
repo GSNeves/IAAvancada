@@ -40,6 +40,10 @@ int main(int argc, char* argv[]) {
             //IMPLEMENTA ASTAR
             AStar(state);
         }
+        if (algorithm == "-bfs") {
+            //IMPLEMENTA BFSGRAPH
+            BFSGraph(state);
+        }
     }
 
 }
