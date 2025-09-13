@@ -45,7 +45,7 @@ void BFSGraph(PuzzleState& state) {
                 finalResult.expandedNodes = nodosExpandidos;
                 finalResult.initialStateHeuristic =  heuristicaPrimeiro;
                 finalResult.solutionLength = child.valorG;
-                cout << "Terminou BFS: " << nodosExpandidos << endl;
+                cout << "Terminou BFS" << endl;
                 printResult(finalResult);
                 return;
             }
@@ -56,7 +56,7 @@ void BFSGraph(PuzzleState& state) {
         }
     }
 
-    cout << "Terminou BFS" << endl;
+    cout << "Terminou BFS sem solucao" << endl;
     return;
 }
 
