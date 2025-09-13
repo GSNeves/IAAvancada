@@ -2,15 +2,19 @@
 #include <unordered_set>
 #include <ctime>
 #include <deque>
+#include <memory>
+
+int nodosExpandidos = 0;
+long heuristicaAcumulada = 0;
+int heuristicaPrimeiro;
 
 void AStar(PuzzleState& state) {
     cout << distanciaManhattan8Puzzle(state);
 }
 
 void BFSGraph(PuzzleState& state) {
-    int nodosExpandidos = 0;
-    long heuristicaAcumulada = 0;
-    int heuristicaPrimeiro;
+    nodosExpandidos = 0;
+    heuristicaAcumulada = 0;
     clock_t start = clock();
 
     if (isGoal(state))
