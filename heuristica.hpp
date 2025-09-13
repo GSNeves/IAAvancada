@@ -6,7 +6,7 @@
 using namespace std;
 
 enum Action {
-    UP, DOWN, LEFT, RIGHT
+    UP, DOWN, LEFT, RIGHT, NONE
 };
 
 struct PuzzleState {
@@ -23,15 +23,37 @@ struct Node {
     int valorF;
     PuzzleState state;
     Action action;
+
+    bool operator==(const Node &other) const {
+        return state.board == other.state.board;
+    }
+};
+
+struct NodeHash {
+    std::size_t operator()(const Node& n) const {
+        return std::hash<std::string>()(n.state.board); // usa hash da string
+    }
+};
+
+struct Result {
+    int expandedNodes;
+    int solutionLength;
+    double duration;
+    float averageHeuristic;
+    int initialStateHeuristic;
 };
 
 int distanciaManhattan8Puzzle(PuzzleState state);
 
 bool isGoal(PuzzleState state);
 
+Node createInitialNode(PuzzleState state);
+
 PuzzleState swap(PuzzleState state, int posFree, int posNew);
 
 vector<Node> generateChildNodes(Node fatherNode);
+
+void printResult(Result result);
 
 
 #endif

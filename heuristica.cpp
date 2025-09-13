@@ -30,6 +30,18 @@ bool isGoal(PuzzleState state) {
     return false;
 }
 
+
+Node createInitialNode(PuzzleState state) {
+    Node node;
+    node.state = state;
+    node.valorH = distanciaManhattan8Puzzle(state);
+    node.valorG = 0;
+    node.valorF = node.valorH;
+    node.action = NONE;
+
+    return node;
+}
+
 PuzzleState swap(PuzzleState state, int posFree, int posNew) {
     PuzzleState newState;
     newState.board = state.board;
@@ -91,4 +103,13 @@ vector<Node> generateChildNodes(Node fatherNode) {
     }
 
     return children;
+}
+
+
+void printResult(Result result) {
+    cout << "Nodos expandidos: " << result.expandedNodes << endl;
+    cout << "Comprimento: " << result.solutionLength << endl;
+    cout << "Duracao: " << result.duration << endl;
+    cout << "Valor medio heuristica: " << result.averageHeuristic << endl;
+    cout << "Primeiro nodo heuristica: " << result.initialStateHeuristic << endl;
 }
