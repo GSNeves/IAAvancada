@@ -7,11 +7,10 @@ void AStar(PuzzleState& state) {
     cout << distanciaManhattan8Puzzle(state);
 }
 
-int nodosExpandidos = 0;
-long heuristicaAcumulada = 0;
-int heuristicaPrimeiro;
-
 void BFSGraph(PuzzleState& state) {
+    int nodosExpandidos = 0;
+    long heuristicaAcumulada = 0;
+    int heuristicaPrimeiro;
     clock_t start = clock();
 
     if (isGoal(state))
@@ -19,7 +18,6 @@ void BFSGraph(PuzzleState& state) {
     deque<Node> openSet;
     Node firstNode = createInitialNode(state);
     openSet.push_back(firstNode);
-
     unordered_set<Node, NodeHash> closedSet;
     closedSet.insert(firstNode);
 
@@ -34,10 +32,10 @@ void BFSGraph(PuzzleState& state) {
         vector<Node> children = generateChildNodes(node);
         for (Node child : children) {
             child.valorH = 0;
-            clock_t end = clock();
-            double tempo = double(end - start) / CLOCKS_PER_SEC;
             if (isGoal(child.state)) {
                 Result finalResult;
+                clock_t end = clock();
+                double tempo = double(end - start) / CLOCKS_PER_SEC;
                 finalResult.averageHeuristic = (float) heuristicaAcumulada / nodosExpandidos;
                 finalResult.duration = tempo;
                 finalResult.expandedNodes = nodosExpandidos;
@@ -54,7 +52,7 @@ void BFSGraph(PuzzleState& state) {
         }
     }
 
-    cout << "Terminou BFS: " << nodosExpandidos << endl;
+    cout << "Terminou BFS" << endl;
     return;
 }
 
