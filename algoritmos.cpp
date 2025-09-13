@@ -60,3 +60,45 @@ void BFSGraph(PuzzleState& state) {
     return;
 }
 
+unique_ptr<Node> depthLimitedSearch(unique_ptr<Node> node, int depthLimit) {
+    if (isGoal(node->state))
+        return node;
+    if (depthLimit> 0) {
+        nodosExpandidos++;
+        vector<Node> children = generateChildNodes(*node);
+        for (Node child : children) {
+            auto solution = depthLimitedSearch(make_unique<Node>(child), depthLimit-1);
+            if (solution) {
+                return solution;
+            }
+        }
+    }
+    return nullptr;
+}
+
+
+void IterativeDeepening(PuzzleState& state) {
+    nodosExpandidos = 0;
+    heuristicaAcumulada = 0;
+    Node firstNode = createInitialNode(state);
+    heuristicaPrimeiro = firstNode.valorH;
+    clock_t start = clock();
+
+    for (int i = 1; true; i++) {
+        auto solution = depthLimitedSearch(make_unique<Node>(firstNode), i);
+        if (solution) {
+            Result finalResult;
+            clock_t end = clock();
+            double tempo = double(end - start) / CLOCKS_PER_SEC;
+            finalResult.averageHeuristic = (float) heuristicaAcumulada / nodosExpandidos;
+            finalResult.duration = tempo;
+            finalResult.expandedNodes = nodosExpandidos;
+            finalResult.initialStateHeuristic =  heuristicaPrimeiro;
+            finalResult.solutionLength = solution->valorG;
+            cout << "Terminou Iterative Deepening" << endl;
+            printResult(finalResult);
+            return;
+        }
+    }
+}
+

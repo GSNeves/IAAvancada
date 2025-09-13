@@ -5,5 +5,6 @@
 
 void AStar(PuzzleState& state);
 void BFSGraph(PuzzleState& state);
+void IterativeDeepening(PuzzleState& state);
 
 #endif
