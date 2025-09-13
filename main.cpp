@@ -44,6 +44,10 @@ int main(int argc, char* argv[]) {
             //IMPLEMENTA BFSGRAPH
             BFSGraph(state);
         }
+        if (algorithm == "-idfs") {
+            //IMPLEMENTA ITERATIVE DEEPENING
+            IterativeDeepening(state);
+        }
     }
 
 }
