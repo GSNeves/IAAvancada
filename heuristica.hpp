@@ -27,6 +27,8 @@ struct Node {
 
 int distanciaManhattan8Puzzle(PuzzleState state);
 
+bool isGoal(PuzzleState state);
+
 PuzzleState swap(PuzzleState state, int posFree, int posNew);
 
 vector<Node> generateChildNodes(Node fatherNode);

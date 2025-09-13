@@ -24,6 +24,12 @@ int distanciaManhattan8Puzzle(PuzzleState state) {
     return valor;
 }
 
+bool isGoal(PuzzleState state) {
+    if (state.board == "012345678")
+        return true;
+    return false;
+}
+
 PuzzleState swap(PuzzleState state, int posFree, int posNew) {
     PuzzleState newState;
     newState.board = state.board;
