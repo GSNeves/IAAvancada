@@ -57,7 +57,7 @@ vector<Node> generateChildNodes(Node fatherNode) {
     //Gera nodo com ação pra esquerda
     if (fatherNode.action != RIGHT && (fatherNode.state.emptyTilePos % 3) != 0) {
         Node leftNode;
-        leftNode.action = UP;
+        leftNode.action = LEFT;
         leftNode.state = swap(fatherNode.state, fatherState.emptyTilePos, fatherState.emptyTilePos-1);
         leftNode.valorH = distanciaManhattan8Puzzle(leftNode.state);
         leftNode.valorG = fatherNode.valorG + 1;
@@ -69,7 +69,7 @@ vector<Node> generateChildNodes(Node fatherNode) {
     //Gera nodo com ação pra direita
     if (fatherNode.action != LEFT && (fatherNode.state.emptyTilePos % 3) != 2) {
         Node rightNode;
-        rightNode.action = UP;
+        rightNode.action = RIGHT;
         rightNode.state = swap(fatherNode.state, fatherState.emptyTilePos, fatherState.emptyTilePos+1);
         rightNode.valorH = distanciaManhattan8Puzzle(rightNode.state);
         rightNode.valorG = fatherNode.valorG + 1;
@@ -81,7 +81,7 @@ vector<Node> generateChildNodes(Node fatherNode) {
     //Gera nodo com ação pra baixo
     if (fatherNode.action != UP && fatherNode.state.emptyTilePos < 6) {
         Node downNode;
-        downNode.action = UP;
+        downNode.action = DOWN;
         downNode.state = swap(fatherNode.state, fatherState.emptyTilePos, fatherState.emptyTilePos+3);
         downNode.valorH = distanciaManhattan8Puzzle(downNode.state);
         downNode.valorG = fatherNode.valorG + 1;
