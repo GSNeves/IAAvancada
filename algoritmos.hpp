@@ -4,5 +4,6 @@
 #include "heuristica.hpp"
 
 void AStar(PuzzleState& state);
+void BFSGraph(PuzzleState& state);
 
 #endif
