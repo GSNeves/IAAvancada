@@ -5,6 +5,10 @@
 #include <iostream>
 using namespace std;
 
+
+extern int nodosTotais;
+extern long heuristicaAcumulada;
+
 enum Action {
     UP, DOWN, LEFT, RIGHT, NONE
 };
@@ -21,6 +25,7 @@ struct Node {
     int valorH;
     int valorG;
     int valorF;
+    int insertionOrder;
     PuzzleState state;
     Action action;
 
@@ -32,6 +37,16 @@ struct Node {
 struct NodeHash {
     std::size_t operator()(const Node& n) const {
         return std::hash<std::string>()(n.state.board); // usa hash da string
+    }
+};
+
+struct AStarCompareNode {
+    bool operator()(const Node& a, const Node& b) const {
+        if (a.valorF != b.valorF)
+            return a.valorF > b.valorF;
+        if (a.valorH != b.valorH)
+            return a.valorH > b.valorH;
+        return a.insertionOrder < b.insertionOrder;
     }
 };
 

@@ -2,14 +2,63 @@
 #include <unordered_set>
 #include <ctime>
 #include <deque>
+#include <queue>
 #include <memory>
+#include <functional>
 
 int nodosExpandidos = 0;
-long heuristicaAcumulada = 0;
 int heuristicaPrimeiro;
 
 void AStar(PuzzleState& state) {
-    cout << distanciaManhattan8Puzzle(state);
+    nodosExpandidos = 0;
+    nodosTotais = 0;
+    heuristicaAcumulada = 0;
+    int ordemInserida = 0;
+    clock_t start = clock();
+
+    if (isGoal(state))
+        return;
+    std::priority_queue<Node, std::vector<Node>, AStarCompareNode> openSet;
+    Node firstNode = createInitialNode(state);
+    firstNode.insertionOrder = ordemInserida;
+    openSet.push(firstNode);
+    unordered_set<Node, NodeHash> closedSet;
+    closedSet.insert(firstNode);
+
+    heuristicaPrimeiro = firstNode.valorH;
+
+    nodosTotais++;
+
+    while (!openSet.empty()) {
+        nodosExpandidos++;
+        Node node = openSet.top();
+        openSet.pop();
+        vector<Node> children = generateChildNodes(node);
+        for (Node child : children) {
+            if (isGoal(child.state)) {
+                Result finalResult;
+                clock_t end = clock();
+                double tempo = double(end - start) / CLOCKS_PER_SEC;
+                finalResult.averageHeuristic = static_cast<double>(heuristicaAcumulada) / nodosTotais;
+                finalResult.duration = tempo;
+                finalResult.expandedNodes = nodosExpandidos;
+                finalResult.initialStateHeuristic =  heuristicaPrimeiro;
+                finalResult.solutionLength = child.valorG;
+                cout << "Terminou A*" << endl;
+                printResult(finalResult);
+                return;
+            }
+            if (closedSet.find(child) == closedSet.end()) {
+                ordemInserida++;
+                child.insertionOrder = ordemInserida;
+                closedSet.insert(child);
+                openSet.push(child);
+            }
+        }
+    }
+
+    cout << "Terminou A* sem solucao" << endl;
+    return;
 }
 
 void BFSGraph(PuzzleState& state) {
