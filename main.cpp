@@ -48,6 +48,10 @@ int main(int argc, char* argv[]) {
             //IMPLEMENTA ITERATIVE DEEPENING
             IterativeDeepening(state);
         }
+        if (algorithm == "-gbfs") {
+            //IMPLEMENTA GREEDY
+            Greedy(state);
+        }   
     }
 
 }

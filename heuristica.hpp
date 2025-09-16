@@ -25,7 +25,7 @@ struct Node {
     int valorH;
     int valorG;
     int valorF;
-    int insertionOrder;
+    unsigned int sequenceId;
     PuzzleState state;
     Action action;
 
@@ -46,7 +46,7 @@ struct AStarCompareNode {
             return a.valorF > b.valorF;
         if (a.valorH != b.valorH)
             return a.valorH > b.valorH;
-        return a.insertionOrder < b.insertionOrder;
+        return a.sequenceId < b.sequenceId;
     }
 };
 
