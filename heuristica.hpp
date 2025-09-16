@@ -21,6 +21,7 @@ struct Node {
     int valorH;
     int valorG;
     int valorF;
+    unsigned int sequenceId;
     PuzzleState state;
     Action action;
 
