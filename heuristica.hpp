@@ -50,6 +50,16 @@ struct AStarCompareNode {
     }
 };
 
+struct GreedyCompareNode {
+    bool operator()(const Node& a, const Node& b) {
+        if (a.valorH != b.valorH)
+            return a.valorH > b.valorH;
+        if (a.valorG != b.valorG)
+            return a.valorG < b.valorG;
+        return a.sequenceId < b.sequenceId;
+    }
+};
+
 struct Result {
     int expandedNodes;
     int solutionLength;
