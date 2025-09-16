@@ -1,5 +1,6 @@
 #include "heuristica.hpp"
 #include <unordered_set>
+#include <unordered_map>
 #include <ctime>
 #include <deque>
 #include <queue>
@@ -16,42 +17,42 @@ void AStar(PuzzleState& state) {
     int ordemInserida = 0;
     clock_t start = clock();
 
-    if (isGoal(state))
-        return;
     std::priority_queue<Node, std::vector<Node>, AStarCompareNode> openSet;
+    unordered_map<string, int> distances;
+
     Node firstNode = createInitialNode(state);
     firstNode.insertionOrder = ordemInserida;
     openSet.push(firstNode);
-    unordered_set<Node, NodeHash> closedSet;
-    closedSet.insert(firstNode);
 
     heuristicaPrimeiro = firstNode.valorH;
 
-    nodosTotais++;
-
     while (!openSet.empty()) {
-        nodosExpandidos++;
         Node node = openSet.top();
         openSet.pop();
-        vector<Node> children = generateChildNodes(node);
-        for (Node child : children) {
-            if (isGoal(child.state)) {
+
+        if (!distances.count(node.state.board) || node.valorG < distances[node.state.board]) {
+            distances[node.state.board] = node.valorG;
+
+            if (isGoal(node.state)) {
                 Result finalResult;
                 clock_t end = clock();
                 double tempo = double(end - start) / CLOCKS_PER_SEC;
                 finalResult.averageHeuristic = static_cast<double>(heuristicaAcumulada) / nodosTotais;
                 finalResult.duration = tempo;
                 finalResult.expandedNodes = nodosExpandidos;
-                finalResult.initialStateHeuristic =  heuristicaPrimeiro;
-                finalResult.solutionLength = child.valorG;
+                finalResult.initialStateHeuristic = heuristicaPrimeiro;
+                finalResult.solutionLength = node.valorG;
                 cout << "Terminou A*" << endl;
                 printResult(finalResult);
                 return;
             }
-            if (closedSet.find(child) == closedSet.end()) {
+            nodosExpandidos++;
+
+            vector<Node> children = generateChildNodes(node);
+            for (Node child : children) {
                 ordemInserida++;
                 child.insertionOrder = ordemInserida;
-                closedSet.insert(child);
+
                 openSet.push(child);
             }
         }
