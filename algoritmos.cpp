@@ -1,17 +1,67 @@
 #include "heuristica.hpp"
 #include <unordered_set>
+#include <unordered_map>
 #include <ctime>
 #include <deque>
+#include <queue>
 #include <memory>
+#include <functional>
 #include <queue>
 
 int nodosExpandidos = 0;
-long heuristicaAcumulada = 0;
 int heuristicaPrimeiro;
 unsigned int nodeIdCounter = 0;
 
 void AStar(PuzzleState& state) {
-    cout << distanciaManhattan8Puzzle(state);
+    nodosExpandidos = 0;
+    nodosTotais = 0;
+    heuristicaAcumulada = 0;
+    int ordemInserida = 0;
+    clock_t start = clock();
+
+    std::priority_queue<Node, std::vector<Node>, AStarCompareNode> openSet;
+    unordered_map<string, int> distances;
+
+    Node firstNode = createInitialNode(state);
+    firstNode.sequenceId = ordemInserida;
+    openSet.push(firstNode);
+
+    heuristicaPrimeiro = firstNode.valorH;
+
+    while (!openSet.empty()) {
+        Node node = openSet.top();
+        openSet.pop();
+
+        if (!distances.count(node.state.board) || node.valorG < distances[node.state.board]) {
+            distances[node.state.board] = node.valorG;
+
+            if (isGoal(node.state)) {
+                Result finalResult;
+                clock_t end = clock();
+                double tempo = double(end - start) / CLOCKS_PER_SEC;
+                finalResult.averageHeuristic = static_cast<double>(heuristicaAcumulada) / nodosTotais;
+                finalResult.duration = tempo;
+                finalResult.expandedNodes = nodosExpandidos;
+                finalResult.initialStateHeuristic = heuristicaPrimeiro;
+                finalResult.solutionLength = node.valorG;
+                cout << "Terminou A*" << endl;
+                printResult(finalResult);
+                return;
+            }
+            nodosExpandidos++;
+
+            vector<Node> children = generateChildNodes(node);
+            for (Node child : children) {
+                ordemInserida++;
+                child.sequenceId = ordemInserida;
+
+                openSet.push(child);
+            }
+        }
+    }
+
+    cout << "Terminou A* sem solucao" << endl;
+    return;
 }
 
 void BFSGraph(PuzzleState& state) {
@@ -145,7 +195,6 @@ void Greedy(PuzzleState& state) {
 
         Node node = openSet.top();
         openSet.pop();
-        heuristicaAcumulada += node.valorH;
 
         //geracao dos filhos
         vector<Node> children = generateChildNodes(node);
@@ -154,7 +203,7 @@ void Greedy(PuzzleState& state) {
                 Result finalResult;
                 clock_t end = clock();
                 double tempo = double(end - start) / CLOCKS_PER_SEC;
-                finalResult.averageHeuristic = (float) heuristicaAcumulada / nodosExpandidos;
+                finalResult.averageHeuristic = (float) heuristicaAcumulada / nodosTotais;
                 finalResult.duration = tempo;
                 finalResult.expandedNodes = nodosExpandidos;
                 finalResult.initialStateHeuristic =  heuristicaPrimeiro;

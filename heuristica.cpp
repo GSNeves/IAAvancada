@@ -2,6 +2,9 @@
 
 using namespace std;
 
+int nodosTotais = 0;
+long heuristicaAcumulada = 0;
+
 int distanciaManhattan8Puzzle(PuzzleState state) {
     int valor = 0;
     for (int i = 0; i < state.board.size(); i++) {
@@ -20,6 +23,9 @@ int distanciaManhattan8Puzzle(PuzzleState state) {
 
         //cout << "valor: " << valor << " linhaAtual: " << linhaAtual << " linhaEsperada: " << linhaEsperada << " colunaAtual: " << colunaAtual << " colunaEsperada: " << colunaEsperada << endl;
     }
+
+    heuristicaAcumulada += valor;
+    nodosTotais++;
 
     return valor;
 }
