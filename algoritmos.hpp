@@ -7,5 +7,6 @@ void AStar(PuzzleState& state);
 void BFSGraph(PuzzleState& state);
 void IterativeDeepening(PuzzleState& state);
 void Greedy(PuzzleState& state);
+void idaStar(PuzzleState& state);
 
 #endif

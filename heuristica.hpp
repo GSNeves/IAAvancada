@@ -14,10 +14,15 @@ enum Action {
 };
 
 struct PuzzleState {
-    string board;
+    std::vector<int>board;
     int emptyTilePos;
     void print() const {
-        cout << "Board: " << board << endl << "EmptyTile: " << emptyTilePos << std::endl;
+        cout << "Board: ";
+        for (size_t i = 0; i < board.size(); ++i) {
+            cout << board[i];
+            if (i != board.size() - 1) cout << " ";
+        }
+        cout << endl << "EmptyTile: " << emptyTilePos << std::endl;
     }
 };
 
@@ -29,14 +34,31 @@ struct Node {
     PuzzleState state;
     Action action;
 
+    Node() : valorH(0), valorG(0), valorF(0), sequenceId(0), action(NONE) {}
+
     bool operator==(const Node &other) const {
         return state.board == other.state.board;
     }
 };
 
+struct VectorHasher {
+    std::size_t operator()(const std::vector<int>& vec) const {
+        std::size_t seed = vec.size();
+        for (int i : vec) {
+            seed ^= std::hash<int>{}(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+        return seed;
+    }
+};
+
 struct NodeHash {
     std::size_t operator()(const Node& n) const {
-        return std::hash<std::string>()(n.state.board); // usa hash da string
+        // Custom hash for vector<int>
+        std::size_t seed = n.state.board.size();
+        for (auto& i : n.state.board) {
+            seed ^= std::hash<int>{}(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+        return seed;
     }
 };
 
@@ -68,7 +90,7 @@ struct Result {
     int initialStateHeuristic;
 };
 
-int distanciaManhattan8Puzzle(PuzzleState state);
+int distanciaManhattan(PuzzleState state);
 
 bool isGoal(PuzzleState state);
 

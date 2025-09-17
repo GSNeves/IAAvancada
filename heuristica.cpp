@@ -1,46 +1,59 @@
 #include "heuristica.hpp"
+#include <cmath>
 
 using namespace std;
 
 int nodosTotais = 0;
 long heuristicaAcumulada = 0;
 
-int distanciaManhattan8Puzzle(PuzzleState state) {
+int getGridSize(const PuzzleState& state) {
+    return static_cast<int>(sqrt(state.board.size()));
+}
+
+int distanciaManhattan(PuzzleState state) {
     int valor = 0;
-    for (int i = 0; i < state.board.size(); i++) {
-        char c = state.board[i];
-        if (c == '0')
-            continue;
+    int grid_size = getGridSize(state);
+    if (grid_size == 0) return 0; // Evita divisão por zero
 
-        int posicaoEsperada = stoi(string(1, c)); //bloco 1 deve estar na posição 1, o bloco 2 na posição 2 e etc.
-        int linhaAtual = i / 3;
-        int colunaAtual = i % 3;
+    for (size_t i = 0; i < state.board.size(); i++) {
+        int piece_value = state.board[i];
+        if (piece_value == 0) continue;
 
-        int linhaEsperada = posicaoEsperada / 3;
-        int colunaEsperada = posicaoEsperada % 3;
+        int posicaoEsperada = piece_value;
+        // Para o objetivo 0,1,2..., a posição esperada do '0' seria 0.
+        // Se o seu objetivo for 1,2,3...0, ajuste a 'posicaoEsperada'.
+        // Assumindo objetivo 0,1,2,3...
+        if (posicaoEsperada == 0) posicaoEsperada = state.board.size(); // '0' no final
+
+        int linhaAtual = i / grid_size;
+        int colunaAtual = i % grid_size;
+
+        int linhaEsperada = posicaoEsperada / grid_size;
+        int colunaEsperada = posicaoEsperada % grid_size;
 
         valor += abs(linhaAtual - linhaEsperada) + abs(colunaAtual - colunaEsperada);
-
-        //cout << "valor: " << valor << " linhaAtual: " << linhaAtual << " linhaEsperada: " << linhaEsperada << " colunaAtual: " << colunaAtual << " colunaEsperada: " << colunaEsperada << endl;
     }
-
+    
     heuristicaAcumulada += valor;
     nodosTotais++;
-
     return valor;
 }
 
+// Checagem de Objetivo Generalizada
 bool isGoal(PuzzleState state) {
-    if (state.board == "012345678")
-        return true;
-    return false;
+    for (size_t i = 0; i < state.board.size(); ++i) {
+        if (state.board[i] != static_cast<int>(i)) {
+            return false;
+        }
+    }
+    return true;
 }
 
-
-Node createInitialNode(PuzzleState state) {
+Node createInitialNode(PuzzleState state)
+{
     Node node;
     node.state = state;
-    node.valorH = distanciaManhattan8Puzzle(state);
+    node.valorH = distanciaManhattan(state);
     node.valorG = 0;
     node.valorF = node.valorH;
     node.action = NONE;
@@ -48,7 +61,8 @@ Node createInitialNode(PuzzleState state) {
     return node;
 }
 
-PuzzleState swap(PuzzleState state, int posFree, int posNew) {
+PuzzleState swap(PuzzleState state, int posFree, int posNew)
+{
     PuzzleState newState;
     newState.board = state.board;
     newState.emptyTilePos = posNew;
@@ -56,66 +70,65 @@ PuzzleState swap(PuzzleState state, int posFree, int posNew) {
     return newState;
 }
 
+// Geração de Filhos Generalizada
 vector<Node> generateChildNodes(Node fatherNode) {
     vector<Node> children;
     PuzzleState fatherState = fatherNode.state;
+    int grid_size = getGridSize(fatherState);
+    int emptyPos = fatherState.emptyTilePos;
 
-    //Gera nodo com ação pra cima
-    if (fatherNode.action != DOWN && fatherNode.state.emptyTilePos > 2) {
+    // Ação para CIMA
+    if (fatherNode.action != DOWN && emptyPos >= grid_size) {
         Node upNode;
         upNode.action = UP;
-        upNode.state = swap(fatherNode.state, fatherState.emptyTilePos, fatherState.emptyTilePos-3);
-        upNode.valorH = distanciaManhattan8Puzzle(upNode.state);
+        upNode.state = swap(fatherState, emptyPos, emptyPos - grid_size);
+        upNode.valorH = distanciaManhattan(upNode.state);
         upNode.valorG = fatherNode.valorG + 1;
-        upNode.valorF = upNode.valorH + upNode.valorG;
-
+        upNode.valorF = upNode.valorG + upNode.valorH;
         children.push_back(upNode);
     }
 
-    //Gera nodo com ação pra esquerda
-    if (fatherNode.action != RIGHT && (fatherNode.state.emptyTilePos % 3) != 0) {
+    // Ação para ESQUERDA
+    if (fatherNode.action != RIGHT && (emptyPos % grid_size) != 0) {
         Node leftNode;
         leftNode.action = LEFT;
-        leftNode.state = swap(fatherNode.state, fatherState.emptyTilePos, fatherState.emptyTilePos-1);
-        leftNode.valorH = distanciaManhattan8Puzzle(leftNode.state);
+        leftNode.state = swap(fatherState, emptyPos, emptyPos - 1);
+        leftNode.valorH = distanciaManhattan(leftNode.state);
         leftNode.valorG = fatherNode.valorG + 1;
-        leftNode.valorF = leftNode.valorH + leftNode.valorG;
-
+        leftNode.valorF = leftNode.valorG + leftNode.valorH;
         children.push_back(leftNode);
     }
 
-    //Gera nodo com ação pra direita
-    if (fatherNode.action != LEFT && (fatherNode.state.emptyTilePos % 3) != 2) {
+    // Ação para DIREITA
+    if (fatherNode.action != LEFT && (emptyPos % grid_size) != (grid_size - 1)) {
         Node rightNode;
         rightNode.action = RIGHT;
-        rightNode.state = swap(fatherNode.state, fatherState.emptyTilePos, fatherState.emptyTilePos+1);
-        rightNode.valorH = distanciaManhattan8Puzzle(rightNode.state);
+        rightNode.state = swap(fatherState, emptyPos, emptyPos + 1);
+        rightNode.valorH = distanciaManhattan(rightNode.state);
         rightNode.valorG = fatherNode.valorG + 1;
-        rightNode.valorF = rightNode.valorH + rightNode.valorG;
-
+        rightNode.valorF = rightNode.valorG + rightNode.valorH;
         children.push_back(rightNode);
     }
 
-    //Gera nodo com ação pra baixo
-    if (fatherNode.action != UP && fatherNode.state.emptyTilePos < 6) {
+    // Ação para BAIXO
+    if (fatherNode.action != UP && emptyPos < static_cast<int>(fatherState.board.size() - grid_size)) {
         Node downNode;
         downNode.action = DOWN;
-        downNode.state = swap(fatherNode.state, fatherState.emptyTilePos, fatherState.emptyTilePos+3);
-        downNode.valorH = distanciaManhattan8Puzzle(downNode.state);
+        downNode.state = swap(fatherState, emptyPos, emptyPos + grid_size);
+        downNode.valorH = distanciaManhattan(downNode.state);
         downNode.valorG = fatherNode.valorG + 1;
-        downNode.valorF = downNode.valorH + downNode.valorG;
-
+        downNode.valorF = downNode.valorG + downNode.valorH;
         children.push_back(downNode);
     }
 
     return children;
 }
 
-
-void printResult(Result result) {
-    cout << "Nodos expandidos: " << result.expandedNodes << endl;
-    cout << "Comprimento: " << result.solutionLength << endl;
-    cout << "Duracao: " << result.duration << endl;
-    cout << "Valor medio heuristica: " << result.averageHeuristic << endl;
-    cout << "Primeiro nodo heuristica: " << result.initialStateHeuristic << endl;
+void printResult(Result result)
+{
+    cout << result.expandedNodes << ",";
+    cout << result.solutionLength << ",";
+    cout << result.duration << ",";
+    cout << result.averageHeuristic << ",";
+    cout << result.initialStateHeuristic << endl;
 }

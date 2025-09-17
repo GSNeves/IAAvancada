@@ -4,6 +4,7 @@
 #include <ctime>
 #include <deque>
 #include <queue>
+#include <limits>
 #include <memory>
 #include <functional>
 
@@ -19,7 +20,7 @@ void AStar(PuzzleState& state) {
     clock_t start = clock();
 
     std::priority_queue<Node, std::vector<Node>, AStarCompareNode> openSet;
-    unordered_map<string, int> distances;
+    unordered_map<vector<int>, int, VectorHasher> distances;
 
     Node firstNode = createInitialNode(state);
     firstNode.sequenceId = ordemInserida;
@@ -43,7 +44,7 @@ void AStar(PuzzleState& state) {
                 finalResult.expandedNodes = nodosExpandidos;
                 finalResult.initialStateHeuristic = heuristicaPrimeiro;
                 finalResult.solutionLength = node.valorG;
-                cout << "Terminou A*" << endl;
+                //cout << "Terminou A*" << endl;
                 printResult(finalResult);
                 return;
             }
@@ -59,7 +60,7 @@ void AStar(PuzzleState& state) {
         }
     }
 
-    cout << "Terminou A* sem solucao" << endl;
+    //cout << "Terminou A* sem solucao" << endl;
     return;
 }
 
@@ -96,7 +97,7 @@ void BFSGraph(PuzzleState& state) {
                 finalResult.expandedNodes = nodosExpandidos;
                 finalResult.initialStateHeuristic =  heuristicaPrimeiro;
                 finalResult.solutionLength = child.valorG;
-                cout << "Terminou BFS" << endl;
+        //       cout << "Terminou BFS" << endl;
                 printResult(finalResult);
                 return;
             }
@@ -107,7 +108,7 @@ void BFSGraph(PuzzleState& state) {
         }
     }
 
-    cout << "Terminou BFS sem solucao" << endl;
+   // cout << "Terminou BFS sem solucao" << endl;
     return;
 }
 
@@ -127,6 +128,58 @@ unique_ptr<Node> depthLimitedSearch(unique_ptr<Node> node, int depthLimit) {
     return nullptr;
 }
 
+unique_ptr<Node> depthLimitedSearchIDA(unique_ptr<Node> node, int g, int threshold, int& newThreshold) {
+    int f = node->valorG + node->valorH;
+    if (f > threshold) {
+        newThreshold = std::min(newThreshold, f);
+        return nullptr;
+    }
+    if (isGoal(node->state))
+        return node;
+
+    nodosExpandidos++;
+    vector<Node> children = generateChildNodes(*node);
+    for (Node child : children) {
+        auto solution = depthLimitedSearchIDA(make_unique<Node>(child), g + 1, threshold, newThreshold);
+        if (solution) {
+            return solution;
+        }
+    }
+    return nullptr;
+}
+
+void idaStar(PuzzleState& state) {
+    // Implementação do IDA*
+    nodosExpandidos = 0;
+    heuristicaAcumulada = 0;
+    Node firstNode = createInitialNode(state);
+    heuristicaPrimeiro = firstNode.valorH;
+    clock_t start = clock();
+
+    int threshold = firstNode.valorH;
+    while (true) {
+        int newThreshold = std::numeric_limits<int>::max();
+        auto solution = depthLimitedSearchIDA(make_unique<Node>(firstNode), 0, threshold, newThreshold);
+        if (solution) {
+            Result finalResult;
+            clock_t end = clock();
+            double tempo = double(end - start) / CLOCKS_PER_SEC;
+            finalResult.averageHeuristic = (float) heuristicaAcumulada / nodosExpandidos;
+            finalResult.duration = tempo;
+            finalResult.expandedNodes = nodosExpandidos;
+            finalResult.initialStateHeuristic =  heuristicaPrimeiro;
+            finalResult.solutionLength = solution->valorG;
+       //     cout << "Terminou IDA*" << endl;
+            printResult(finalResult);
+            return;
+        }
+        if (newThreshold == std::numeric_limits<int>::max()) {
+      //      cout << "Terminou IDA* sem solucao" << endl;
+            return;
+        }
+        threshold = newThreshold; // Incrementa o limite de profundidade
+    }
+}
 
 void IterativeDeepening(PuzzleState& state) {
     nodosExpandidos = 0;
@@ -146,7 +199,7 @@ void IterativeDeepening(PuzzleState& state) {
             finalResult.expandedNodes = nodosExpandidos;
             finalResult.initialStateHeuristic =  heuristicaPrimeiro;
             finalResult.solutionLength = solution->valorG;
-            cout << "Terminou Iterative Deepening" << endl;
+      //      cout << "Terminou Iterative Deepening" << endl;
             printResult(finalResult);
             return;
         }
@@ -188,7 +241,7 @@ void Greedy(PuzzleState& state) {
                 finalResult.expandedNodes = nodosExpandidos;
                 finalResult.initialStateHeuristic =  heuristicaPrimeiro;
                 finalResult.solutionLength = child.valorG;
-                cout << "Terminou Greedy" << endl;
+        //       cout << "Terminou Greedy" << endl;
                 printResult(finalResult);
                 return;
             }
