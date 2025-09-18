@@ -1,3 +1,4 @@
+#include "algoritmos.hpp"
 #include "heuristica.hpp"
 #include <unordered_set>
 #include <unordered_map>
@@ -10,6 +11,8 @@
 
 int nodosExpandidos = 0;
 int heuristicaPrimeiro;
+int idaStarHeuristaca;
+int idaStarNodos;
 unsigned int nodeIdCounter = 0;
 
 void AStar(PuzzleState& state) {
@@ -128,56 +131,60 @@ unique_ptr<Node> depthLimitedSearch(unique_ptr<Node> node, int depthLimit) {
     return nullptr;
 }
 
-unique_ptr<Node> depthLimitedSearchIDA(unique_ptr<Node> node, int g, int threshold, int& newThreshold) {
-    int f = node->valorG + node->valorH;
-    if (f > threshold) {
-        newThreshold = std::min(newThreshold, f);
-        return nullptr;
+SearchResult idaSearch(unique_ptr<Node> n, int f_limit) {
+    if (n->valorF > f_limit) {
+        return {n->valorF, nullptr};
     }
-    if (isGoal(node->state))
-        return node;
+    if (isGoal(n->state)) {
+        return {INT_MAX, std::move(n)};
+    }
 
+    int nextLimit = INT_MAX;
     nodosExpandidos++;
-    vector<Node> children = generateChildNodes(*node);
-    for (Node child : children) {
-        auto solution = depthLimitedSearchIDA(make_unique<Node>(child), g + 1, threshold, newThreshold);
-        if (solution) {
-            return solution;
+    for (Node child : generateChildNodes(*n)) {
+        idaStarHeuristaca+=child.valorH;
+        idaStarNodos++;
+
+        auto result = idaSearch(make_unique<Node>(child), f_limit);
+        if (result.solution) {
+            return {INT_MAX, std::move(result.solution)};
         }
+        nextLimit = min(nextLimit, result.nextLimit);
     }
-    return nullptr;
+    return {nextLimit, nullptr};
 }
 
+
 void idaStar(PuzzleState& state) {
-    // Implementação do IDA*
     nodosExpandidos = 0;
+    nodosTotais = 0;
     heuristicaAcumulada = 0;
-    Node firstNode = createInitialNode(state);
-    heuristicaPrimeiro = firstNode.valorH;
     clock_t start = clock();
 
-    int threshold = firstNode.valorH;
-    while (true) {
-        int newThreshold = std::numeric_limits<int>::max();
-        auto solution = depthLimitedSearchIDA(make_unique<Node>(firstNode), 0, threshold, newThreshold);
-        if (solution) {
-            Result finalResult;
+    Node firstNode = createInitialNode(state);
+    heuristicaPrimeiro = firstNode.valorH;
+    idaStarHeuristaca+=firstNode.valorH;
+    idaStarNodos++;
+
+    int f_limit = firstNode.valorH;
+
+    while (f_limit != INT_MAX) {
+        auto result = idaSearch(make_unique<Node>(firstNode), f_limit);
+        if (result.solution) {
             clock_t end = clock();
             double tempo = double(end - start) / CLOCKS_PER_SEC;
-            finalResult.averageHeuristic = (float) heuristicaAcumulada / nodosExpandidos;
+
+            Result finalResult;
+            finalResult.averageHeuristic = static_cast<double>(idaStarHeuristaca) / idaStarNodos;
             finalResult.duration = tempo;
             finalResult.expandedNodes = nodosExpandidos;
-            finalResult.initialStateHeuristic =  heuristicaPrimeiro;
-            finalResult.solutionLength = solution->valorG;
-       //     cout << "Terminou IDA*" << endl;
+            finalResult.initialStateHeuristic = heuristicaPrimeiro;
+            finalResult.solutionLength = result.solution->valorG;
+            //cout << "Terminou IDA*" << endl;
             printResult(finalResult);
             return;
         }
-        if (newThreshold == std::numeric_limits<int>::max()) {
-      //      cout << "Terminou IDA* sem solucao" << endl;
-            return;
-        }
-        threshold = newThreshold; // Incrementa o limite de profundidade
+        f_limit = result.nextLimit;
     }
 }
 
