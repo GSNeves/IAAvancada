@@ -20,48 +20,73 @@ void AStar(PuzzleState& state) {
     nodosTotais = 0;
     heuristicaAcumulada = 0;
     int ordemInserida = 0;
+
+    const double TEMPO_LIMITE = 30.0; // Limite de tempo em segundos
     clock_t start = clock();
 
     std::priority_queue<Node, std::vector<Node>, AStarCompareNode> openSet;
-    unordered_map<vector<int>, int, VectorHasher> distances;
+    unordered_map<uint64_t, int> distances;
 
     Node firstNode = createInitialNode(state);
     firstNode.sequenceId = ordemInserida;
     openSet.push(firstNode);
+    distances[firstNode.state.board] = 0; // Adiciona o estado inicial
 
     heuristicaPrimeiro = firstNode.valorH;
 
     while (!openSet.empty()) {
+
+        //CHECAGEM DE TEMPO
+
+        if (nodosExpandidos % 1000 == 0) { // Verifica o tempo a cada 1000 nós expandidos
+            clock_t current = clock();
+            double elapsed = double(current - start) / CLOCKS_PER_SEC;
+            if (elapsed > TEMPO_LIMITE) {
+                cout << "-,-,-,-,-" << endl;
+                return; // Sai da função se o tempo limite for excedido
+            }
+        }
+
         Node node = openSet.top();
         openSet.pop();
 
-        if (!distances.count(node.state.board) || node.valorG < distances[node.state.board]) {
-            distances[node.state.board] = node.valorG;
+        // Otimização: Se encontramos um caminho mais longo para um nó já finalizado, ignore-o.
+        if (node.valorG > distances[node.state.board]) {
+            continue;
+        }
 
-            if (isGoal(node.state)) {
-                Result finalResult;
-                clock_t end = clock();
-                double tempo = double(end - start) / CLOCKS_PER_SEC;
-                finalResult.averageHeuristic = static_cast<double>(heuristicaAcumulada) / nodosTotais;
-                finalResult.duration = tempo;
-                finalResult.expandedNodes = nodosExpandidos;
-                finalResult.initialStateHeuristic = heuristicaPrimeiro;
-                finalResult.solutionLength = node.valorG;
-                //cout << "Terminou A*" << endl;
-                printResult(finalResult);
-                return;
+        if (isGoal(node.state)) {
+            Result finalResult;
+            clock_t end = clock();
+            double tempo = double(end - start) / CLOCKS_PER_SEC;
+            finalResult.averageHeuristic = static_cast<double>(heuristicaAcumulada) / nodosTotais;
+            finalResult.duration = tempo;
+            finalResult.expandedNodes = nodosExpandidos;
+            finalResult.initialStateHeuristic = heuristicaPrimeiro;
+            finalResult.solutionLength = node.valorG;
+            printResult(finalResult);
+            return;
+        }
+        nodosExpandidos++;
+
+        vector<Node> children = generateChildNodes(node);
+        for (Node& child : children) { // Usar referência & para evitar cópias
+            
+            // Verifica se o filho já foi visitado com um custo menor ou igual
+            if (distances.count(child.state.board) && distances[child.state.board] <= child.valorG) {
+                continue; // Se sim, ignora este caminho
             }
-            nodosExpandidos++;
-
-            vector<Node> children = generateChildNodes(node);
-            for (Node child : children) {
-                ordemInserida++;
-                child.sequenceId = ordemInserida;
-
-                openSet.push(child);
-            }
+            
+            // Caso contrário, é um bom nó para explorar
+            ordemInserida++;
+            child.sequenceId = ordemInserida;
+            distances[child.state.board] = child.valorG; // Atualiza a distância
+            openSet.push(child);
         }
     }
+
+    //se não achar solucao, imprime mensagem
+    cout << "-,-,-,-,-" << endl;
 
     //cout << "Terminou A* sem solucao" << endl;
     return;
@@ -95,7 +120,7 @@ void BFSGraph(PuzzleState& state) {
                 Result finalResult;
                 clock_t end = clock();
                 double tempo = double(end - start) / CLOCKS_PER_SEC;
-                finalResult.averageHeuristic = (float) heuristicaAcumulada / nodosExpandidos;
+                finalResult.averageHeuristic = 0; // BFS não usa heurística
                 finalResult.duration = tempo;
                 finalResult.expandedNodes = nodosExpandidos;
                 finalResult.initialStateHeuristic =  heuristicaPrimeiro;
@@ -201,7 +226,7 @@ void IterativeDeepening(PuzzleState& state) {
             Result finalResult;
             clock_t end = clock();
             double tempo = double(end - start) / CLOCKS_PER_SEC;
-            finalResult.averageHeuristic = (float) heuristicaAcumulada / nodosExpandidos;
+            finalResult.averageHeuristic = 0; // IDFS não usa heurística
             finalResult.duration = tempo;
             finalResult.expandedNodes = nodosExpandidos;
             finalResult.initialStateHeuristic =  heuristicaPrimeiro;

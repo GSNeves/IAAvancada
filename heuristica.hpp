@@ -2,6 +2,8 @@
 #define HEURISTICA_HPP
 #include <vector>
 #include <string>
+#include <climits>
+#include <cstdint>
 #include <iostream>
 using namespace std;
 
@@ -14,15 +16,13 @@ enum Action {
 };
 
 struct PuzzleState {
-    std::vector<int>board;
+    uint64_t board;
     int emptyTilePos;
+    int gridSize;
+
     void print() const {
-        cout << "Board: ";
-        for (size_t i = 0; i < board.size(); ++i) {
-            cout << board[i];
-            if (i != board.size() - 1) cout << " ";
-        }
-        cout << endl << "EmptyTile: " << emptyTilePos << std::endl;
+        cout << "Board: " << board << endl;
+        cout << "EmptyTile: " << emptyTilePos << endl;
     }
 };
 
@@ -52,13 +52,8 @@ struct VectorHasher {
 };
 
 struct NodeHash {
-    std::size_t operator()(const Node& n) const {
-        // Custom hash for vector<int>
-        std::size_t seed = n.state.board.size();
-        for (auto& i : n.state.board) {
-            seed ^= std::hash<int>{}(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        }
-        return seed;
+    std::size_t operator()(const Node& node) const {
+        return std::hash<uint64_t>()(node.state.board);
     }
 };
 
@@ -89,6 +84,29 @@ struct Result {
     float averageHeuristic;
     int initialStateHeuristic;
 };
+
+inline uint64_t pack_board(const vector<int> &board)
+{
+    uint64_t packed = 0;
+    for (size_t i = 0; i < board.size(); ++i)
+    {
+        // desloca 4 bits para a esquerda e adiciona o valor da peça
+        packed |= (static_cast<uint64_t>(board[i]) << (i * 4));
+    }
+    return packed;
+}
+
+inline vector<int> unpack_board(uint64_t packed, size_t size)
+{
+    vector<int> board(size);
+    for (size_t i = 0; i < size; ++i)
+    {
+        // extrai os 4 bits correspondentes à peça na posição i
+        board[i] = (packed >> (i * 4)) & 0xF;
+    }
+    return board;
+}
+
 
 int distanciaManhattan(PuzzleState state);
 
