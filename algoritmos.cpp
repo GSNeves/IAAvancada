@@ -157,6 +157,8 @@ unique_ptr<Node> depthLimitedSearch(unique_ptr<Node> node, int depthLimit) {
 }
 
 SearchResult idaSearch(unique_ptr<Node> n, int f_limit) {
+    idaStarHeuristaca+=n->valorH;
+    idaStarNodos++;
     if (n->valorF > f_limit) {
         return {n->valorF, nullptr};
     }
@@ -167,8 +169,6 @@ SearchResult idaSearch(unique_ptr<Node> n, int f_limit) {
     int nextLimit = INT_MAX;
     nodosExpandidos++;
     for (Node child : generateChildNodes(*n)) {
-        idaStarHeuristaca+=child.valorH;
-        idaStarNodos++;
 
         auto result = idaSearch(make_unique<Node>(child), f_limit);
         if (result.solution) {
@@ -185,6 +185,8 @@ void idaStar(PuzzleState& state) {
     nodosTotais = 0;
     heuristicaAcumulada = 0;
     clock_t start = clock();
+    idaStarHeuristaca = 0;
+    idaStarNodos = 0;
 
     Node firstNode = createInitialNode(state);
     heuristicaPrimeiro = firstNode.valorH;
