@@ -20,23 +20,20 @@ int distanciaManhattan(PuzzleState state)
     if (grid_size == 0)
         return 0; // Evita divisão por zero
 
-    vector<int> current_board = unpack_board(state.board, grid_size * grid_size);
+    int total_tiles = grid_size * grid_size;
 
-    for (size_t i = 0; i < current_board.size(); i++)
-    {
-        int piece_value = current_board[i];
+    for (int i = 0; i < total_tiles; i++) {
+        int piece_value = (state.board >> (i * 4)) & 0xF;  // extrai o nibble na posição i
         if (piece_value == 0)
             continue;
-
-        int posicaoEsperada = piece_value;
 
         int linhaAtual = i / grid_size;
         int colunaAtual = i % grid_size;
 
-        int linhaEsperada = posicaoEsperada / grid_size;
-        int colunaEsperada = posicaoEsperada % grid_size;
+        int linhaEsperada = piece_value / grid_size;
+        int colunaEsperada = piece_value % grid_size;
 
-        valor += abs(linhaAtual - linhaEsperada) + abs(colunaAtual - colunaEsperada);
+        valor += std::abs(linhaAtual - linhaEsperada) + std::abs(colunaAtual - colunaEsperada);
     }
 
     heuristicaAcumulada += valor;
@@ -58,16 +55,7 @@ bool isGoal(PuzzleState state)
     }
     else
     {
-        vector<int> board = unpack_board(state.board, state.gridSize * state.gridSize);
-        for (size_t i = 0; i < board.size(); ++i)
-        {
-            if (board[i] != static_cast<int>(i))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return state.board == goal_8_puzzle;
     }
 }
 
@@ -83,14 +71,26 @@ Node createInitialNode(PuzzleState state)
     return node;
 }
 
+uint64_t swap_positions(uint64_t board, int pos1, int pos2) {
+    // Extrai nibbles
+    uint64_t nib1 = (board >> (pos1 * 4)) & 0xFULL;
+    uint64_t nib2 = (board >> (pos2 * 4)) & 0xFULL;
+
+    // Limpa posições
+    board &= ~(0xFULL << (pos1 * 4));
+    board &= ~(0xFULL << (pos2 * 4));
+
+    // Escreve de volta trocados
+    board |= (nib1 << (pos2 * 4));
+    board |= (nib2 << (pos1 * 4));
+
+    return board;
+}
+
 PuzzleState swap(PuzzleState state, int posFree, int posNew)
 {
-
-    vector<int> board_vec = unpack_board(state.board, state.gridSize * state.gridSize);
-    swap(board_vec[posFree], board_vec[posNew]);
-
     PuzzleState newState;
-    newState.board = pack_board(board_vec);
+    newState.board = swap_positions(state.board, posFree, posNew);
     newState.emptyTilePos = posNew;
     newState.gridSize = state.gridSize;
     return newState;

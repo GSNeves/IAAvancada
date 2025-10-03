@@ -19,7 +19,7 @@ void AStar(PuzzleState& state) {
     nodosExpandidos = 0;
     nodosTotais = 0;
     heuristicaAcumulada = 0;
-    int ordemInserida = 0;
+    unsigned int ordemInserida = 0;
 
     const double TEMPO_LIMITE = 30.0; // Limite de tempo em segundos
     clock_t start = clock();
