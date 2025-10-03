@@ -244,6 +244,7 @@ void Greedy(PuzzleState& state) {
     nodeIdCounter = 0;
     nodosExpandidos = 0;
     heuristicaAcumulada = 0;
+    nodosTotais = 0;
     Node firstNode = createInitialNode(state);
     firstNode.sequenceId = nodeIdCounter++;
     heuristicaPrimeiro = firstNode.valorH;
