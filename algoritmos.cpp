@@ -30,7 +30,6 @@ void AStar(PuzzleState& state) {
     Node firstNode = createInitialNode(state);
     firstNode.sequenceId = ordemInserida;
     openSet.push(firstNode);
-    distances[firstNode.state.board] = 0; // Adiciona o estado inicial
 
     heuristicaPrimeiro = firstNode.valorH;
 
@@ -49,39 +48,29 @@ void AStar(PuzzleState& state) {
 
         Node node = openSet.top();
         openSet.pop();
+        if (!distances.count(node.state.board) || node.valorG < distances[node.state.board]) {
+            distances[node.state.board] = node.valorG; // Atualiza a distância
 
-        // Otimização: Se encontramos um caminho mais longo para um nó já finalizado, ignore-o.
-        if (node.valorG > distances[node.state.board]) {
-            continue;
-        }
-
-        if (isGoal(node.state)) {
-            Result finalResult;
-            clock_t end = clock();
-            double tempo = double(end - start) / CLOCKS_PER_SEC;
-            finalResult.averageHeuristic = static_cast<double>(heuristicaAcumulada) / nodosTotais;
-            finalResult.duration = tempo;
-            finalResult.expandedNodes = nodosExpandidos;
-            finalResult.initialStateHeuristic = heuristicaPrimeiro;
-            finalResult.solutionLength = node.valorG;
-            printResult(finalResult);
-            return;
-        }
-        nodosExpandidos++;
-
-        vector<Node> children = generateChildNodes(node);
-        for (Node& child : children) { // Usar referência & para evitar cópias
-            
-            // Verifica se o filho já foi visitado com um custo menor ou igual
-            if (distances.count(child.state.board) && distances[child.state.board] <= child.valorG) {
-                continue; // Se sim, ignora este caminho
+            if (isGoal(node.state)) {
+                Result finalResult;
+                clock_t end = clock();
+                double tempo = double(end - start) / CLOCKS_PER_SEC;
+                finalResult.averageHeuristic = static_cast<double>(heuristicaAcumulada) / nodosTotais;
+                finalResult.duration = tempo;
+                finalResult.expandedNodes = nodosExpandidos;
+                finalResult.initialStateHeuristic = heuristicaPrimeiro;
+                finalResult.solutionLength = node.valorG;
+                printResult(finalResult);
+                return;
             }
-            
-            // Caso contrário, é um bom nó para explorar
-            ordemInserida++;
-            child.sequenceId = ordemInserida;
-            distances[child.state.board] = child.valorG; // Atualiza a distância
-            openSet.push(child);
+            nodosExpandidos++;
+
+            vector<Node> children = generateChildNodes(node);
+            for (Node& child : children) { // Usar referência & para evitar cópias
+                ordemInserida++;
+                child.sequenceId = ordemInserida;
+                openSet.push(child);
+            }
         }
     }
 
